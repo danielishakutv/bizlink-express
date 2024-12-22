@@ -1,175 +1,160 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Card, CardHeader, CardContent, CardFooter } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { useNavigate, Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Building2, Mail, Lock, Phone, UserPlus, ArrowRight } from "lucide-react";
+import { toast } from "sonner";
+import { Mail, Lock, Building2, Phone, ArrowRight } from "lucide-react";
 
-export default function Register() {
-  const [businessName, setBusinessName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [phone, setPhone] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+const Register = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+    businessName: "",
+    phone: "",
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    
+    setLoading(true);
+
     try {
-      const { error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            business_name: businessName,
-            phone: phone,
-          },
-        },
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
       });
 
-      if (signUpError) throw signUpError;
+      if (authError) throw authError;
 
-      toast({
-        title: "Registration successful!",
-        description: "Welcome to BusinessPage. Please check your email to verify your account.",
-      });
-      
-      navigate("/dashboard");
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({
+          business_name: formData.businessName,
+          phone: formData.phone,
+        })
+        .eq('id', authData.user!.id);
+
+      if (profileError) throw profileError;
+
+      toast.success("Registration successful! Please check your email to verify your account.");
+      navigate("/");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
+      toast.error(error.message);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  const handleGuestAccess = () => {
-    navigate("/browse");
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value,
+    });
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      <div className="container mx-auto px-4 pt-24 pb-16">
-        <div className="max-w-md mx-auto space-y-6">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">Create Your Business Page</h1>
-            <p className="text-muted-foreground">
-              Get started with your personalized business page in minutes
-            </p>
-          </div>
-
-          <div className="bg-white p-6 rounded-lg shadow-lg border border-gray-100">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="businessName">Business Name</Label>
-                <div className="relative">
-                  <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="businessName"
-                    placeholder="Enter your business name"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="Enter your email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="phone">Phone Number</Label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="phone"
-                    type="tel"
-                    placeholder="Enter your Nigerian phone number"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="password"
-                    type="password"
-                    placeholder="Create a password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-9"
-                    required
-                  />
-                </div>
-              </div>
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  "Creating account..."
-                ) : (
-                  <>
-                    Create Account <UserPlus className="ml-2 h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            </form>
-
-            <div className="mt-6 text-center space-y-4">
-              <div className="text-sm text-muted-foreground">
-                Already have an account?{" "}
-                <Link to="/login" className="text-primary hover:underline">
-                  Sign in here
-                </Link>
-              </div>
-
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <Card className="w-full max-w-md mx-4">
+        <CardHeader className="space-y-1">
+          <h2 className="text-2xl font-bold text-center">Create an account</h2>
+          <p className="text-center text-gray-500">
+            Enter your details to register your business
+          </p>
+        </CardHeader>
+        <form onSubmit={handleRegister}>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="businessName">Business Name</Label>
               <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-sm">
-                  <span className="bg-white px-2 text-muted-foreground">or</span>
-                </div>
+                <Building2 className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="businessName"
+                  placeholder="Your Business Name"
+                  value={formData.businessName}
+                  onChange={handleInputChange}
+                  className="pl-10"
+                  required
+                />
               </div>
-
-              <Button
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="m@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone Number</Label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="(123) 456-7890"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                <Input
+                  id="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
+            <Button 
+              type="submit" 
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? "Creating account..." : "Create account"}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+            <div className="flex flex-col space-y-2 text-center">
+              <Button 
+                type="button" 
                 variant="outline"
-                className="w-full"
-                onClick={handleGuestAccess}
+                onClick={() => navigate("/login")}
               >
-                Continue as Guest <ArrowRight className="ml-2 h-4 w-4" />
+                Already have an account?
+              </Button>
+              <Button 
+                type="button" 
+                variant="ghost"
+                onClick={() => navigate("/")}
+              >
+                Continue as guest
               </Button>
             </div>
-          </div>
-        </div>
-      </div>
+          </CardFooter>
+        </form>
+      </Card>
     </div>
   );
-}
+};
+
+export default Register;
