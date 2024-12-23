@@ -38,13 +38,26 @@ export default function MenuManagement() {
         if (customization) {
           // Safely type cast the JSON data to MenuItem[]
           const jsonItems = customization.menu_items as Json[] || [];
-          const items: MenuItem[] = jsonItems.map(item => ({
-            id: String(item.id || ''),
-            name: String(item.name || ''),
-            description: String(item.description || ''),
-            price: Number(item.price || 0),
-            category: String(item.category || ''),
-          }));
+          const items: MenuItem[] = jsonItems.map(item => {
+            // Ensure item is an object before accessing properties
+            if (typeof item === 'object' && item !== null) {
+              return {
+                id: String((item as Record<string, Json>).id || ''),
+                name: String((item as Record<string, Json>).name || ''),
+                description: String((item as Record<string, Json>).description || ''),
+                price: Number((item as Record<string, Json>).price || 0),
+                category: String((item as Record<string, Json>).category || ''),
+              };
+            }
+            // Return a default MenuItem if the item is not in the expected format
+            return {
+              id: crypto.randomUUID(),
+              name: '',
+              description: '',
+              price: 0,
+              category: '',
+            };
+          });
           setMenuItems(items);
           setCurrency(customization.currency || "USD");
         }
@@ -88,11 +101,20 @@ export default function MenuManagement() {
     if (!session) return;
 
     try {
+      // Convert MenuItem[] to a format compatible with Json[]
+      const jsonMenuItems = menuItems.map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        price: item.price,
+        category: item.category,
+      })) as unknown as Json[];
+
       const { error } = await supabase
         .from('business_customizations')
         .upsert({
           business_id: session.user.id,
-          menu_items: menuItems as Json[], // Type assertion for Supabase JSONB
+          menu_items: jsonMenuItems,
         }, {
           onConflict: 'business_id'
         });
