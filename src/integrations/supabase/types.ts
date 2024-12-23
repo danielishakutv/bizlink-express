@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      business_customizations: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          menu_items: Json | null
+          primary_color: string | null
+          public_name: string | null
+          secondary_color: string | null
+          updated_at: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          menu_items?: Json | null
+          primary_color?: string | null
+          public_name?: string | null
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          menu_items?: Json | null
+          primary_color?: string | null
+          public_name?: string | null
+          secondary_color?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_customizations_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           business_name: string | null
