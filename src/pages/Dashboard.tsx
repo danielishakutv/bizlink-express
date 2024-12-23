@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Settings, Users, Building2, ArrowRight } from "lucide-react";
+import { Settings, DollarSign, Menu, ShoppingCart, Users } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Dashboard() {
   const session = useSession();
@@ -14,14 +15,15 @@ export default function Dashboard() {
   const { toast } = useToast();
   const [businessProfile, setBusinessProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const isMobile = useIsMobile();
 
   // Sample data for the chart - in a real app, this would come from your database
   const sampleData = [
-    { name: 'Jan', value: 400 },
-    { name: 'Feb', value: 300 },
-    { name: 'Mar', value: 600 },
-    { name: 'Apr', value: 800 },
-    { name: 'May', value: 500 },
+    { name: 'Jan', value: 400, revenue: 5000 },
+    { name: 'Feb', value: 300, revenue: 4200 },
+    { name: 'Mar', value: 600, revenue: 6800 },
+    { name: 'Apr', value: 800, revenue: 8500 },
+    { name: 'May', value: 500, revenue: 5600 },
   ];
 
   useEffect(() => {
@@ -63,14 +65,52 @@ export default function Dashboard() {
     );
   }
 
+  const quickActions = [
+    {
+      title: "Customize Business Page",
+      icon: Settings,
+      onClick: () => navigate('/customize'),
+      description: "Update your business page appearance"
+    },
+    {
+      title: "Menu Management",
+      icon: Menu,
+      onClick: () => navigate('/menu'),
+      description: "Manage your menu items"
+    },
+    {
+      title: "Orders",
+      icon: ShoppingCart,
+      onClick: () => navigate('/orders'),
+      description: "View and manage orders"
+    },
+    {
+      title: "Team Management",
+      icon: Users,
+      onClick: () => navigate('/team'),
+      description: "Manage your team members"
+    }
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Welcome, {businessProfile?.business_name || 'Business Owner'}</h1>
+    <div className="container mx-auto px-4 py-6 md:py-8 max-w-7xl">
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl md:text-3xl font-bold">Welcome, {businessProfile?.business_name || 'Business Owner'}</h1>
         <p className="text-muted-foreground mt-2">Manage your business profile and view insights</p>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-3 mb-8">
+      <div className="grid gap-4 md:gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mb-6 md:mb-8">
+        <Card className="bg-white">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">$24,500</div>
+            <p className="text-xs text-muted-foreground">+15% from last month</p>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Visitors</CardTitle>
@@ -84,8 +124,8 @@ export default function Dashboard() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Profile Views</CardTitle>
-            <Building2 className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">567</div>
@@ -96,7 +136,7 @@ export default function Dashboard() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
-            <Settings className="h-4 w-4 text-muted-foreground" />
+            <Menu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">4.6%</div>
@@ -105,10 +145,10 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 mb-8">
+      <div className="grid gap-6 md:grid-cols-2 mb-6 md:mb-8">
         <Card>
           <CardHeader>
-            <CardTitle>Visitor Trends</CardTitle>
+            <CardTitle>Revenue Trends</CardTitle>
           </CardHeader>
           <CardContent className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
@@ -117,7 +157,13 @@ export default function Dashboard() {
                 <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
-                <Line type="monotone" dataKey="value" stroke="#8884d8" />
+                <Line 
+                  type="monotone" 
+                  dataKey="revenue" 
+                  stroke="#9b87f5" 
+                  strokeWidth={2}
+                  dot={{ fill: "#9b87f5" }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -128,30 +174,27 @@ export default function Dashboard() {
             <CardTitle>Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button 
-              variant="outline" 
-              className="w-full justify-between"
-              onClick={() => navigate('/customize')}
-            >
-              Customize Business Page
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-between"
-              onClick={() => {/* Add functionality */}}
-            >
-              Update Business Profile
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              className="w-full justify-between"
-              onClick={() => {/* Add functionality */}}
-            >
-              View Analytics
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            {quickActions.map((action, index) => (
+              <Button 
+                key={index}
+                variant="outline" 
+                className="w-full justify-between hover:bg-primary/5"
+                onClick={action.onClick}
+              >
+                <div className="flex items-center gap-3">
+                  <action.icon className="h-4 w-4" />
+                  <div className="text-left">
+                    <div className="font-medium">{action.title}</div>
+                    {!isMobile && (
+                      <div className="text-sm text-muted-foreground">
+                        {action.description}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="text-muted-foreground">→</div>
+              </Button>
+            ))}
           </CardContent>
         </Card>
       </div>
