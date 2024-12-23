@@ -84,9 +84,10 @@ export default function Customize() {
       let logoUrl = null;
       if (logo) {
         const fileExt = logo.name.split('.').pop();
+        // Create user-specific folder path
         const filePath = `${session.user.id}/${crypto.randomUUID()}.${fileExt}`;
         
-        const { error: uploadError } = await supabase.storage
+        const { error: uploadError, data } = await supabase.storage
           .from('business-logos')
           .upload(filePath, logo);
 
@@ -231,4 +232,4 @@ export default function Customize() {
       </div>
     </div>
   );
-}
+};
