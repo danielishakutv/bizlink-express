@@ -42,6 +42,10 @@ const Login = () => {
               duration: 4000,
             });
           }
+        } else if (error.message.includes("Invalid login credentials")) {
+          toast.error("Invalid email or password. Please try again.", {
+            duration: 4000,
+          });
         } else {
           toast.error(error.message);
         }
