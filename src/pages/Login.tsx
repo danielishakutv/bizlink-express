@@ -24,10 +24,31 @@ const Login = () => {
         password,
       });
 
-      if (error) throw error;
-
-      toast.success("Successfully logged in!");
-      navigate("/");
+      if (error) {
+        if (error.message.includes("Email not confirmed")) {
+          toast.error(
+            "Please confirm your email address. Check your inbox for a confirmation link.",
+            {
+              duration: 6000,
+            }
+          );
+          // Optionally, we can offer to resend the confirmation email
+          const { error: resendError } = await supabase.auth.resend({
+            type: 'signup',
+            email,
+          });
+          if (!resendError) {
+            toast.info("A new confirmation email has been sent to your address.", {
+              duration: 4000,
+            });
+          }
+        } else {
+          toast.error(error.message);
+        }
+      } else {
+        toast.success("Successfully logged in!");
+        navigate("/");
+      }
     } catch (error: any) {
       toast.error(error.message);
     } finally {
