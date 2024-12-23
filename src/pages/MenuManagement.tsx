@@ -8,14 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
-
-interface MenuItem {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  category: string;
-}
+import { MenuItem } from "@/types/menu";
 
 export default function MenuManagement() {
   const session = useSession();
@@ -42,7 +35,8 @@ export default function MenuManagement() {
         if (customizationError) throw customizationError;
 
         if (customization) {
-          setMenuItems(customization.menu_items || []);
+          const items = customization.menu_items as MenuItem[] || [];
+          setMenuItems(items);
           setCurrency(customization.currency || "USD");
         }
       } catch (error: any) {
@@ -89,7 +83,7 @@ export default function MenuManagement() {
         .from('business_customizations')
         .upsert({
           business_id: session.user.id,
-          menu_items: menuItems,
+          menu_items: menuItems as any, // Type assertion needed due to Supabase JSONB type
         }, {
           onConflict: 'business_id'
         });
@@ -198,4 +192,4 @@ export default function MenuManagement() {
       </div>
     </div>
   );
-}
+};

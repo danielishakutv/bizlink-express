@@ -13,18 +13,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
-
-interface Order {
-  id: string;
-  customer_name: string;
-  customer_email: string;
-  customer_phone: string;
-  items: any[];
-  total_amount: number;
-  currency: string;
-  status: string;
-  created_at: string;
-}
+import { Order } from "@/types/order";
 
 export default function Orders() {
   const session = useSession();
@@ -49,7 +38,13 @@ export default function Orders() {
 
         if (error) throw error;
 
-        setOrders(data || []);
+        // Type assertion to handle the JSONB to OrderItem[] conversion
+        const typedOrders = (data || []).map(order => ({
+          ...order,
+          items: order.items as any[], // Convert JSONB to OrderItem[]
+        }));
+
+        setOrders(typedOrders);
       } catch (error: any) {
         console.error('Error fetching orders:', error);
         toast({
