@@ -11,21 +11,21 @@ export type Database = {
     Tables: {
       profiles: {
         Row: {
-          business_name: string
+          business_name: string | null
           created_at: string
           id: string
           phone: string | null
           updated_at: string
         }
         Insert: {
-          business_name: string
+          business_name?: string | null
           created_at?: string
           id: string
           phone?: string | null
           updated_at?: string
         }
         Update: {
-          business_name?: string
+          business_name?: string | null
           created_at?: string
           id?: string
           phone?: string | null
