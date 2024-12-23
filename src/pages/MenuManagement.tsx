@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Plus, Trash2 } from "lucide-react";
 import { MenuItem } from "@/types/menu";
+import { Json } from "@/integrations/supabase/types";
 
 export default function MenuManagement() {
   const session = useSession();
@@ -35,7 +36,15 @@ export default function MenuManagement() {
         if (customizationError) throw customizationError;
 
         if (customization) {
-          const items = customization.menu_items as MenuItem[] || [];
+          // Safely type cast the JSON data to MenuItem[]
+          const jsonItems = customization.menu_items as Json[] || [];
+          const items: MenuItem[] = jsonItems.map(item => ({
+            id: String(item.id || ''),
+            name: String(item.name || ''),
+            description: String(item.description || ''),
+            price: Number(item.price || 0),
+            category: String(item.category || ''),
+          }));
           setMenuItems(items);
           setCurrency(customization.currency || "USD");
         }
@@ -83,7 +92,7 @@ export default function MenuManagement() {
         .from('business_customizations')
         .upsert({
           business_id: session.user.id,
-          menu_items: menuItems as any, // Type assertion needed due to Supabase JSONB type
+          menu_items: menuItems as Json[], // Type assertion for Supabase JSONB
         }, {
           onConflict: 'business_id'
         });
@@ -192,4 +201,4 @@ export default function MenuManagement() {
       </div>
     </div>
   );
-};
+}
