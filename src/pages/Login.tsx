@@ -43,13 +43,15 @@ const Login = () => {
             });
           }
         } else if (error.message.includes("Invalid login credentials")) {
-          toast.error("Invalid email or password. Please try again.", {
+          toast.error("The email or password you entered is incorrect. Please try again.", {
             duration: 4000,
           });
+          // Clear the password field for security
+          setPassword("");
         } else {
           toast.error(error.message);
         }
-      } else {
+      } else if (data.user) {
         toast.success("Successfully logged in!");
         navigate("/");
       }
