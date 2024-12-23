@@ -13,6 +13,7 @@ export type Database = {
         Row: {
           business_id: string | null
           created_at: string
+          currency: string | null
           id: string
           logo_url: string | null
           menu_items: Json | null
@@ -24,6 +25,7 @@ export type Database = {
         Insert: {
           business_id?: string | null
           created_at?: string
+          currency?: string | null
           id?: string
           logo_url?: string | null
           menu_items?: Json | null
@@ -35,6 +37,7 @@ export type Database = {
         Update: {
           business_id?: string | null
           created_at?: string
+          currency?: string | null
           id?: string
           logo_url?: string | null
           menu_items?: Json | null
@@ -48,6 +51,56 @@ export type Database = {
             foreignKeyName: "business_customizations_business_id_fkey"
             columns: ["business_id"]
             isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          currency: string
+          customer_email: string | null
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          items: Json
+          status: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          items?: Json
+          status?: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          currency?: string
+          customer_email?: string | null
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          items?: Json
+          status?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
@@ -76,6 +129,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      team_members: {
+        Row: {
+          business_id: string | null
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          business_id?: string | null
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          business_id?: string | null
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_members_business_id_fkey"
+            columns: ["business_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
