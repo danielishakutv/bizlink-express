@@ -14,17 +14,42 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const validateInputs = () => {
+    if (!email.trim()) {
+      toast.error("Please enter your email address");
+      return false;
+    }
+    if (!password.trim()) {
+      toast.error("Please enter your password");
+      return false;
+    }
+    // Basic email format validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    return true;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!validateInputs()) {
+      return;
+    }
+
     setLoading(true);
     
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+        email: email.trim(),
+        password: password.trim(),
       });
 
       if (error) {
+        console.error("Login error:", error);
+        
         if (error.message.includes("Email not confirmed")) {
           toast.error(
             "Please confirm your email address. Check your inbox for a confirmation link.",
@@ -32,7 +57,6 @@ const Login = () => {
               duration: 6000,
             }
           );
-          // Optionally, we can offer to resend the confirmation email
           const { error: resendError } = await supabase.auth.resend({
             type: 'signup',
             email,
@@ -43,20 +67,20 @@ const Login = () => {
             });
           }
         } else if (error.message.includes("Invalid login credentials")) {
-          toast.error("The email or password you entered is incorrect. Please try again.", {
+          toast.error("The email or password you entered is incorrect.", {
             duration: 4000,
           });
-          // Clear the password field for security
-          setPassword("");
+          setPassword(""); // Clear password field for security
         } else {
-          toast.error(error.message);
+          toast.error("Failed to sign in. Please try again.");
         }
       } else if (data.user) {
         toast.success("Successfully logged in!");
         navigate("/");
       }
     } catch (error: any) {
-      toast.error(error.message);
+      console.error("Unexpected error:", error);
+      toast.error("An unexpected error occurred. Please try again later.");
     } finally {
       setLoading(false);
     }
