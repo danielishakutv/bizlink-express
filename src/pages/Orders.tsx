@@ -83,10 +83,17 @@ export default function Orders() {
             ),
           });
           
-          // Add new order to the list
+          // Add new order to the list with proper typing
           setOrders(current => [{
-            ...payload.new,
+            id: payload.new.id,
+            customer_name: payload.new.customer_name,
+            customer_email: payload.new.customer_email,
+            customer_phone: payload.new.customer_phone,
             items: payload.new.items as any[],
+            total_amount: payload.new.total_amount,
+            currency: payload.new.currency,
+            status: payload.new.status,
+            created_at: payload.new.created_at,
           }, ...current]);
         }
       )
