@@ -30,7 +30,6 @@ export default function Store() {
   useEffect(() => {
     const fetchStoreData = async () => {
       try {
-        // Try to fetch by custom URL first if provided
         let query = supabase
           .from('business_customizations')
           .select('*, profiles:business_id(business_name)');
@@ -46,7 +45,17 @@ export default function Store() {
         if (customizationError) throw customizationError;
 
         if (customization) {
-          setMenuItems(customization.menu_items as MenuItem[] || []);
+          // Ensure the menu items conform to the MenuItem interface
+          const items = (customization.menu_items as any[] || []).map((item: any): MenuItem => ({
+            id: item.id,
+            name: item.name,
+            description: item.description,
+            price: item.price,
+            category: item.category,
+            image_url: item.image_url
+          }));
+          
+          setMenuItems(items);
           setCurrency(customization.currency || "USD");
           setBusinessName(customization.profiles?.business_name || customization.public_name || "Our Store");
         }
