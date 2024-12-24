@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Order } from "@/types/order";
+import { Bell } from "lucide-react";
 
 export default function Orders() {
   const session = useSession();
@@ -58,6 +59,42 @@ export default function Orders() {
     };
 
     fetchOrders();
+
+    // Subscribe to new orders
+    const channel = supabase
+      .channel('orders')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: `business_id=eq.${session.user.id}`,
+        },
+        (payload) => {
+          // Show notification for new order
+          toast({
+            title: "New Order Received",
+            description: (
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4" />
+                <span>New order from {payload.new.customer_name}</span>
+              </div>
+            ),
+          });
+          
+          // Add new order to the list
+          setOrders(current => [{
+            ...payload.new,
+            items: payload.new.items as any[],
+          }, ...current]);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [session, navigate, toast]);
 
   const getStatusColor = (status: string) => {
@@ -112,7 +149,7 @@ export default function Orders() {
                     <div>
                       <div className="font-medium">{order.customer_name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {order.customer_email}
+                        {order.customer_phone}
                       </div>
                     </div>
                   </TableCell>

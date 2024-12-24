@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, ExternalLink } from "lucide-react";
 import { MenuItem } from "@/types/menu";
 import { Json } from "@/integrations/supabase/types";
 
@@ -153,7 +153,16 @@ export default function MenuManagement() {
               Add and manage your menu items
             </p>
           </div>
-          <Button onClick={handleSave}>Save Changes</Button>
+          <div className="flex gap-4">
+            <Button
+              variant="outline"
+              onClick={() => window.open(`/store/${session?.user?.id}`, '_blank')}
+            >
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View Store
+            </Button>
+            <Button onClick={handleSave}>Save Changes</Button>
+          </div>
         </div>
 
         <div className="space-y-4">
