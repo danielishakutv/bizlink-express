@@ -1,4 +1,3 @@
-import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { Features } from "@/components/Features";
 import { useSession } from "@supabase/auth-helpers-react";
@@ -10,9 +9,14 @@ const Index = () => {
   const session = useSession();
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (session) {
+      navigate('/dashboard');
+    }
+  }, [session, navigate]);
+
   return (
     <div className="min-h-screen">
-      <Navbar />
       <Hero />
       <div className="container mx-auto px-4 py-8 text-center">
         {!session && (
@@ -30,13 +34,6 @@ const Index = () => {
               variant="outline"
             >
               Register
-            </Button>
-            <Button 
-              onClick={() => navigate("/")}
-              className="mx-2"
-              variant="ghost"
-            >
-              Continue as Guest
             </Button>
           </div>
         )}
