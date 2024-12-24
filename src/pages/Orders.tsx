@@ -14,6 +14,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Order } from "@/types/order";
+import { Bell } from "lucide-react";
 
 export default function Orders() {
   const session = useSession();
@@ -38,10 +39,9 @@ export default function Orders() {
 
         if (error) throw error;
 
-        // Type assertion to handle the JSONB to OrderItem[] conversion
         const typedOrders = (data || []).map(order => ({
           ...order,
-          items: order.items as any[], // Convert JSONB to OrderItem[]
+          items: order.items as any[],
         }));
 
         setOrders(typedOrders);
@@ -58,6 +58,33 @@ export default function Orders() {
     };
 
     fetchOrders();
+
+    // Subscribe to new orders
+    const channel = supabase
+      .channel('orders-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'orders',
+          filter: `business_id=eq.${session.user.id}`,
+        },
+        (payload) => {
+          const newOrder = payload.new as Order;
+          setOrders(current => [newOrder, ...current]);
+          toast({
+            title: "New Order Received!",
+            description: `Order from ${newOrder.customer_name}`,
+            icon: <Bell className="h-4 w-4" />,
+          });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [session, navigate, toast]);
 
   const getStatusColor = (status: string) => {
@@ -112,7 +139,7 @@ export default function Orders() {
                     <div>
                       <div className="font-medium">{order.customer_name}</div>
                       <div className="text-sm text-muted-foreground">
-                        {order.customer_email}
+                        {order.customer_phone}
                       </div>
                     </div>
                   </TableCell>
