@@ -16,7 +16,7 @@ interface CartItem extends MenuItem {
 }
 
 export default function Store() {
-  const { businessId } = useParams();
+  const { businessId, storeName } = useParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
@@ -30,21 +30,25 @@ export default function Store() {
   useEffect(() => {
     const fetchStoreData = async () => {
       try {
-        // Fetch business customization data
-        const { data: customization, error: customizationError } = await supabase
+        // Try to fetch by custom URL first if provided
+        let query = supabase
           .from('business_customizations')
-          .select('menu_items, currency, public_name')
-          .eq('business_id', businessId)
-          .single();
+          .select('*, profiles:business_id(business_name)');
+
+        if (storeName) {
+          query = query.eq('public_name', storeName);
+        } else if (businessId) {
+          query = query.eq('business_id', businessId);
+        }
+
+        const { data: customization, error: customizationError } = await query.single();
 
         if (customizationError) throw customizationError;
 
         if (customization) {
-          // Type assertion for menu items
-          const items = customization.menu_items as unknown as MenuItem[];
-          setMenuItems(items || []);
+          setMenuItems(customization.menu_items as MenuItem[] || []);
           setCurrency(customization.currency || "USD");
-          setBusinessName(customization.public_name || "Our Store");
+          setBusinessName(customization.profiles?.business_name || customization.public_name || "Our Store");
         }
       } catch (error: any) {
         console.error('Error fetching store data:', error);
@@ -59,7 +63,7 @@ export default function Store() {
     };
 
     fetchStoreData();
-  }, [businessId, toast]);
+  }, [businessId, storeName, toast]);
 
   const addToCart = (item: MenuItem) => {
     setCart(currentCart => {
