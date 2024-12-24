@@ -75,8 +75,12 @@ export default function Orders() {
           setOrders(current => [newOrder, ...current]);
           toast({
             title: "New Order Received!",
-            description: `Order from ${newOrder.customer_name}`,
-            icon: <Bell className="h-4 w-4" />,
+            description: (
+              <div className="flex items-center gap-2">
+                <Bell className="h-4 w-4" />
+                <span>Order from {newOrder.customer_name}</span>
+              </div>
+            ),
           });
         }
       )

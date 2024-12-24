@@ -14,7 +14,6 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 
 export default function Store() {
   const { businessId } = useParams();
@@ -39,7 +38,8 @@ export default function Store() {
         if (customizationError) throw customizationError;
 
         if (customization) {
-          const items = customization.menu_items as MenuItem[] || [];
+          // Type assertion to ensure menu_items is treated as MenuItem[]
+          const items = (customization.menu_items as unknown as MenuItem[]) || [];
           setMenuItems(items);
           setBusinessName(customization.public_name || 'Our Store');
         }
