@@ -111,13 +111,13 @@ export const Layout = ({ children }: LayoutProps) => {
       {/* Bottom Navigation for Mobile */}
       {isMobile && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t z-50">
-          <div className="grid grid-cols-5 h-full">
+          <div className="grid grid-cols-5 h-full w-full">
             {navigationItems.map((item) => (
               <Button
                 key={item.path}
                 variant="ghost"
                 className={cn(
-                  "h-full rounded-none flex flex-col items-center justify-center gap-1",
+                  "h-full rounded-none flex flex-col items-center justify-center gap-1 w-full",
                   location.pathname === item.path && "bg-secondary"
                 )}
                 onClick={() => handleNavigate(item.path)}
