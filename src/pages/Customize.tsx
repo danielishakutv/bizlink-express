@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Select,
   SelectContent,
@@ -13,6 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { TeamManagement } from "@/pages/TeamManagement";
 
 const currencies = [
   { value: "USD", label: "US Dollar (USD)" },
@@ -26,6 +28,7 @@ export default function Customize() {
   const session = useSession();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [logo, setLogo] = useState<File | null>(null);
   const [primaryColor, setPrimaryColor] = useState("#9b87f5");
@@ -229,7 +232,14 @@ export default function Customize() {
             Save Changes
           </Button>
         </form>
+
+        {isMobile && (
+          <div className="mt-12">
+            <h2 className="text-2xl font-bold mb-6">Team Management</h2>
+            <TeamManagement />
+          </div>
+        )}
       </div>
     </div>
   );
-};
+}

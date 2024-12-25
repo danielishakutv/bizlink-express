@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Settings, DollarSign, Menu, ShoppingCart, Users } from "lucide-react";
+import { Settings, DollarSign, Menu, ShoppingCart, Users, LogOut } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { StoreLinks } from "@/components/store/StoreLinks";
 
 export default function Dashboard() {
   const session = useSession();
@@ -198,6 +199,23 @@ export default function Dashboard() {
           </CardContent>
         </Card>
       </div>
+
+      <div className="mt-8">
+        <StoreLinks />
+      </div>
+
+      {isMobile && (
+        <div className="mt-8 mb-24">
+          <Button
+            variant="destructive"
+            className="w-full"
+            onClick={handleSignOut}
+          >
+            <LogOut className="h-4 w-4 mr-2" />
+            Sign Out
+          </Button>
+        </div>
+      )}
     </div>
   );
 }

@@ -17,12 +17,13 @@ export const Layout = ({ children }: LayoutProps) => {
   const supabase = useSupabaseClient();
   const { toast } = useToast();
   const isRootPath = location.pathname === "/" || location.pathname === "/dashboard";
+  const isStorePath = location.pathname.startsWith('/store');
 
   const navigationItems = [
     { label: "Dashboard", icon: Home, path: "/dashboard" },
     { label: "Menu", icon: Menu, path: "/menu" },
     { label: "Orders", icon: ShoppingCart, path: "/orders" },
-    { label: "Team", icon: Users, path: "/team" },
+    ...(isMobile ? [] : [{ label: "Team", icon: Users, path: "/team" }]),
     { label: "Customize", icon: Settings, path: "/customize" },
   ];
 
@@ -52,7 +53,7 @@ export const Layout = ({ children }: LayoutProps) => {
   };
 
   // Don't render the layout for store pages
-  if (location.pathname.startsWith('/store')) {
+  if (isStorePath) {
     return <>{children}</>;
   }
 
@@ -110,7 +111,7 @@ export const Layout = ({ children }: LayoutProps) => {
       {/* Bottom Navigation for Mobile */}
       {isMobile && (
         <div className="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-white border-t z-50">
-          <div className="grid grid-cols-6 h-full">
+          <div className="grid grid-cols-5 h-full">
             {navigationItems.map((item) => (
               <Button
                 key={item.path}
@@ -125,14 +126,6 @@ export const Layout = ({ children }: LayoutProps) => {
                 <span className="text-xs">{item.label}</span>
               </Button>
             ))}
-            <Button
-              variant="ghost"
-              className="h-full rounded-none flex flex-col items-center justify-center gap-1"
-              onClick={handleSignOut}
-            >
-              <LogOut className="h-5 w-5" />
-              <span className="text-xs">Logout</span>
-            </Button>
           </div>
         </div>
       )}
