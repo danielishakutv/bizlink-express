@@ -20,7 +20,9 @@ export interface StoreCustomization {
   public_name?: string;
   menu_items: MenuItemType[];
   currency: string;
-  business?: {
+  profiles?: {
     business_name?: string;
-  }
+  };
+  created_at: string;
+  updated_at: string;
 }

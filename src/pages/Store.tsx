@@ -48,7 +48,13 @@ export default function Store() {
           return;
         }
 
-        setStoreData(data as StoreCustomization);
+        // Ensure menu_items is an array
+        const parsedData: StoreCustomization = {
+          ...data,
+          menu_items: Array.isArray(data.menu_items) ? data.menu_items : []
+        };
+
+        setStoreData(parsedData);
       } catch (error: any) {
         console.error('Error fetching store data:', error);
         toast({
