@@ -283,6 +283,15 @@ export default function Store() {
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {menuItems.map((item) => (
             <Card key={item.id} className="overflow-hidden">
+              {item.image_url && (
+                <div className="aspect-video w-full overflow-hidden">
+                  <img 
+                    src={item.image_url} 
+                    alt={item.name}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
               <CardHeader className="pb-2">
                 <CardTitle>{item.name}</CardTitle>
               </CardHeader>
