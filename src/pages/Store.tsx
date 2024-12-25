@@ -48,10 +48,22 @@ export default function Store() {
           return;
         }
 
-        // Ensure menu_items is an array
+        // Parse and validate menu items
+        const menuItems = Array.isArray(data.menu_items) 
+          ? data.menu_items.map((item: any): MenuItemType => ({
+              id: item.id,
+              name: item.name,
+              description: item.description,
+              price: item.price,
+              image_url: item.image_url,
+              category: item.category
+            }))
+          : [];
+
+        // Create the store data with properly typed menu items
         const parsedData: StoreCustomization = {
           ...data,
-          menu_items: Array.isArray(data.menu_items) ? data.menu_items : []
+          menu_items: menuItems
         };
 
         setStoreData(parsedData);
