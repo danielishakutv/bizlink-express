@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TeamManagement } from "@/pages/TeamManagement";
+import TeamManagement from "@/pages/TeamManagement";
 
 const currencies = [
   { value: "USD", label: "US Dollar (USD)" },
@@ -243,3 +243,4 @@ export default function Customize() {
     </div>
   );
 }
+

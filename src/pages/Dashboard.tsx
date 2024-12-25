@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSession } from "@supabase/auth-helpers-react";
+import { useSession, useSupabaseClient } from "@supabase/auth-helpers-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -17,6 +17,25 @@ export default function Dashboard() {
   const [businessProfile, setBusinessProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const isMobile = useIsMobile();
+  const supabaseClient = useSupabaseClient();
+
+  // Add the missing handleSignOut function
+  const handleSignOut = async () => {
+    const { error } = await supabaseClient.auth.signOut();
+    if (error) {
+      toast({
+        title: "Error signing out",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Signed out successfully",
+        description: "Come back soon!",
+      });
+      navigate('/login');
+    }
+  };
 
   // Sample data for the chart - in a real app, this would come from your database
   const sampleData = [
