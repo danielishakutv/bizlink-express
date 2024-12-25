@@ -3,26 +3,22 @@ import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ShoppingCart, Plus, Minus } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { MenuItem } from "@/types/menu";
-
-interface CartItem extends MenuItem {
-  quantity: number;
-}
+import { MenuItem } from "@/components/store/MenuItem";
+import { CartItem } from "@/components/store/CartItem";
+import { MenuItemType, CartItemType, StoreCustomization } from "@/types/store";
 
 export default function Store() {
   const { businessId, storeName } = useParams();
   const { toast } = useToast();
   const [loading, setLoading] = useState(true);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
-  const [cart, setCart] = useState<CartItem[]>([]);
-  const [businessName, setBusinessName] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [storeData, setStoreData] = useState<StoreCustomization | null>(null);
+  const [cart, setCart] = useState<CartItemType[]>([]);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [isCheckingOut, setIsCheckingOut] = useState(false);
@@ -40,25 +36,19 @@ export default function Store() {
           query = query.eq('business_id', businessId);
         }
 
-        const { data: customization, error: customizationError } = await query.single();
+        const { data, error } = await query.maybeSingle();
 
-        if (customizationError) throw customizationError;
-
-        if (customization) {
-          // Ensure the menu items conform to the MenuItem interface
-          const items = (customization.menu_items as any[] || []).map((item: any): MenuItem => ({
-            id: item.id,
-            name: item.name,
-            description: item.description,
-            price: item.price,
-            category: item.category,
-            image_url: item.image_url
-          }));
-          
-          setMenuItems(items);
-          setCurrency(customization.currency || "USD");
-          setBusinessName(customization.profiles?.business_name || customization.public_name || "Our Store");
+        if (error) throw error;
+        if (!data) {
+          toast({
+            title: "Store not found",
+            description: "The requested store could not be found.",
+            variant: "destructive",
+          });
+          return;
         }
+
+        setStoreData(data as StoreCustomization);
       } catch (error: any) {
         console.error('Error fetching store data:', error);
         toast({
@@ -74,7 +64,7 @@ export default function Store() {
     fetchStoreData();
   }, [businessId, storeName, toast]);
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItemType) => {
     setCart(currentCart => {
       const existingItem = currentCart.find(cartItem => cartItem.id === item.id);
       if (existingItem) {
@@ -101,17 +91,12 @@ export default function Store() {
           return newQuantity > 0 ? [...acc, { ...item, quantity: newQuantity }] : acc;
         }
         return [...acc, item];
-      }, [] as CartItem[]);
+      }, [] as CartItemType[]);
     });
   };
 
   const getTotalAmount = () => {
     return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const validatePhone = (phone: string) => {
-    const phoneRegex = /^\+?[\d\s-]{10,}$/;
-    return phoneRegex.test(phone);
   };
 
   const handleCheckout = async () => {
@@ -124,10 +109,10 @@ export default function Store() {
       return;
     }
 
-    if (!validatePhone(customerPhone)) {
+    if (!customerPhone.trim()) {
       toast({
         title: "Error",
-        description: "Please enter a valid phone number",
+        description: "Please enter your phone number",
         variant: "destructive",
       });
       return;
@@ -136,7 +121,7 @@ export default function Store() {
     setIsCheckingOut(true);
     try {
       const orderData = {
-        business_id: businessId,
+        business_id: storeData?.business_id,
         customer_name: customerName,
         customer_phone: customerPhone,
         items: cart.map(item => ({
@@ -146,7 +131,7 @@ export default function Store() {
           quantity: item.quantity
         })),
         total_amount: getTotalAmount(),
-        currency: currency,
+        currency: storeData?.currency || 'USD',
         status: 'pending'
       };
 
@@ -161,11 +146,9 @@ export default function Store() {
         description: "Your order has been placed successfully!",
       });
 
-      // Reset cart and form
       setCart([]);
       setCustomerName("");
       setCustomerPhone("");
-      setIsCheckingOut(false);
     } catch (error: any) {
       console.error('Error placing order:', error);
       toast({
@@ -173,6 +156,7 @@ export default function Store() {
         description: "Failed to place order. Please try again.",
         variant: "destructive",
       });
+    } finally {
       setIsCheckingOut(false);
     }
   };
@@ -185,13 +169,25 @@ export default function Store() {
     );
   }
 
+  if (!storeData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-2">Store Not Found</h1>
+          <p className="text-muted-foreground">The requested store could not be found.</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold">{businessName}</h1>
-            <p className="text-muted-foreground mt-2">Welcome to our store</p>
+            <h1 className="text-3xl font-bold">
+              {storeData.profiles?.business_name || storeData.public_name || "Our Store"}
+            </h1>
           </div>
           <Sheet>
             <SheetTrigger asChild>
@@ -214,36 +210,17 @@ export default function Store() {
                 ) : (
                   <>
                     {cart.map((item) => (
-                      <div key={item.id} className="flex justify-between items-center">
-                        <div>
-                          <h3 className="font-medium">{item.name}</h3>
-                          <p className="text-sm text-muted-foreground">
-                            {currency} {item.price.toFixed(2)}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => updateQuantity(item.id, -1)}
-                          >
-                            <Minus className="h-4 w-4" />
-                          </Button>
-                          <span>{item.quantity}</span>
-                          <Button
-                            variant="outline"
-                            size="icon"
-                            onClick={() => updateQuantity(item.id, 1)}
-                          >
-                            <Plus className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
+                      <CartItem
+                        key={item.id}
+                        item={item}
+                        updateQuantity={updateQuantity}
+                        currency={storeData.currency}
+                      />
                     ))}
                     <div className="border-t pt-4">
                       <div className="flex justify-between font-medium">
                         <span>Total:</span>
-                        <span>{currency} {getTotalAmount().toFixed(2)}</span>
+                        <span>{storeData.currency} {getTotalAmount().toFixed(2)}</span>
                       </div>
                     </div>
                     <div className="space-y-4 mt-6">
@@ -281,35 +258,15 @@ export default function Store() {
         </div>
 
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {menuItems.map((item) => (
-            <Card key={item.id} className="overflow-hidden">
-              {item.image_url && (
-                <div className="aspect-video w-full overflow-hidden">
-                  <img 
-                    src={item.image_url} 
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
-              <CardHeader className="pb-2">
-                <CardTitle>{item.name}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground mb-4">{item.description}</p>
-                <div className="flex justify-between items-center">
-                  <span className="font-medium">
-                    {currency} {item.price.toFixed(2)}
-                  </span>
-                  <Button onClick={() => addToCart(item)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add to Cart
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-          {menuItems.length === 0 && (
+          {storeData.menu_items && storeData.menu_items.length > 0 ? (
+            storeData.menu_items.map((item: MenuItemType) => (
+              <MenuItem
+                key={item.id}
+                item={item}
+                onAddToCart={addToCart}
+              />
+            ))
+          ) : (
             <p className="text-muted-foreground col-span-full text-center py-8">
               No menu items available
             </p>

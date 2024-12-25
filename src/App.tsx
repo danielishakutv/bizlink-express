@@ -13,13 +13,12 @@ import Customize from "./pages/Customize";
 import MenuManagement from "./pages/MenuManagement";
 import Orders from "./pages/Orders";
 import TeamManagement from "./pages/TeamManagement";
+import Store from "./pages/Store";
 import { supabase } from "./integrations/supabase/client";
 
 const queryClient = new QueryClient();
 
 const App = () => {
-  const publicRoutes = ["/", "/login", "/register"];
-
   return (
     <QueryClientProvider client={queryClient}>
       <SessionContextProvider supabaseClient={supabase}>
@@ -31,6 +30,8 @@ const App = () => {
               {/* Public routes without navigation */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/store/:businessId" element={<Store />} />
+              <Route path="/store/by-name/:storeName" element={<Store />} />
               
               {/* Routes with navigation layout */}
               <Route path="/" element={<Layout><Index /></Layout>} />
