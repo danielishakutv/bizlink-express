@@ -14,6 +14,7 @@ export const MenuItem = ({ item, storeData, onAddToCart }: MenuItemProps) => {
     <Card 
       className="overflow-hidden transition-all hover:shadow-lg"
       style={{
+        backgroundColor: storeData.background_color,
         borderColor: storeData.secondary_color
       }}
     >
@@ -27,19 +28,22 @@ export const MenuItem = ({ item, storeData, onAddToCart }: MenuItemProps) => {
         </div>
       )}
       <CardHeader className="pb-2">
-        <CardTitle style={{ color: storeData.secondary_color }}>{item.name}</CardTitle>
+        <CardTitle style={{ color: storeData.item_title_color }}>{item.name}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
-          <p className="text-lg font-semibold" style={{ color: storeData.secondary_color }}>
+          <p 
+            className="text-lg font-semibold"
+            style={{ color: storeData.text_color }}
+          >
             {storeData.currency} {item.price.toFixed(2)}
           </p>
           <Button 
             size="sm" 
             onClick={() => onAddToCart(item)}
             style={{
-              backgroundColor: storeData.secondary_color,
-              color: storeData.primary_color
+              backgroundColor: storeData.button_color,
+              color: storeData.button_text_color
             }}
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -47,7 +51,12 @@ export const MenuItem = ({ item, storeData, onAddToCart }: MenuItemProps) => {
           </Button>
         </div>
         {item.description && (
-          <p className="text-sm text-muted-foreground mt-2">{item.description}</p>
+          <p 
+            className="text-sm mt-2"
+            style={{ color: storeData.description_color }}
+          >
+            {item.description}
+          </p>
         )}
       </CardContent>
     </Card>

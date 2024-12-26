@@ -197,7 +197,10 @@ export default function Store() {
   }
 
   return (
-    <div className="min-h-screen" style={{ backgroundColor: storeData.primary_color + '10' }}>
+    <div 
+      className="min-h-screen" 
+      style={{ backgroundColor: storeData?.body_background_color || '#f5f5f5' }}
+    >
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           <Sheet>
@@ -270,7 +273,7 @@ export default function Store() {
           </Sheet>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {storeData.menu_items && storeData.menu_items.length > 0 ? (
+            {storeData?.menu_items && storeData.menu_items.length > 0 ? (
               storeData.menu_items.map((item: MenuItemType) => (
                 <MenuItem
                   key={item.id}
@@ -280,7 +283,10 @@ export default function Store() {
                 />
               ))
             ) : (
-              <p className="text-muted-foreground col-span-full text-center py-8">
+              <p 
+                className="text-muted-foreground col-span-full text-center py-8"
+                style={{ color: storeData?.text_color }}
+              >
                 No menu items available
               </p>
             )}
