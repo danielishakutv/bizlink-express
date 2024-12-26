@@ -1,20 +1,22 @@
 import { Button } from "@/components/ui/button";
 import { Plus, Minus } from "lucide-react";
-import { CartItemType } from "@/types/store";
+import { CartItemType, StoreCustomization } from "@/types/store";
 
 interface CartItemProps {
   item: CartItemType;
+  storeData: StoreCustomization;
   updateQuantity: (id: string, change: number) => void;
-  currency: string;
 }
 
-export const CartItem = ({ item, updateQuantity, currency }: CartItemProps) => {
+export const CartItem = ({ item, storeData, updateQuantity }: CartItemProps) => {
   return (
     <div className="flex justify-between items-center">
       <div>
-        <h3 className="font-medium">{item.name}</h3>
+        <h3 className="font-medium" style={{ color: storeData.secondary_color }}>
+          {item.name}
+        </h3>
         <p className="text-sm text-muted-foreground">
-          ₦ {item.price.toFixed(2)}
+          {storeData.currency} {item.price.toFixed(2)}
         </p>
       </div>
       <div className="flex items-center gap-2">
@@ -22,6 +24,10 @@ export const CartItem = ({ item, updateQuantity, currency }: CartItemProps) => {
           variant="outline"
           size="icon"
           onClick={() => updateQuantity(item.id, -1)}
+          style={{
+            borderColor: storeData.secondary_color,
+            color: storeData.secondary_color
+          }}
         >
           <Minus className="h-4 w-4" />
         </Button>
@@ -30,6 +36,10 @@ export const CartItem = ({ item, updateQuantity, currency }: CartItemProps) => {
           variant="outline"
           size="icon"
           onClick={() => updateQuantity(item.id, 1)}
+          style={{
+            borderColor: storeData.secondary_color,
+            color: storeData.secondary_color
+          }}
         >
           <Plus className="h-4 w-4" />
         </Button>

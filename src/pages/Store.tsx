@@ -1,16 +1,14 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { ShoppingCart } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { MenuItem } from "@/components/store/MenuItem";
 import { CartItem } from "@/components/store/CartItem";
+import { StoreHeader } from "@/components/store/StoreHeader";
 import { MenuItemType, CartItemType, StoreCustomization } from "@/types/store";
 
 export default function Store() {
@@ -199,28 +197,21 @@ export default function Store() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">
-              {storeData.profiles?.business_name || storeData.public_name || "Our Store"}
-            </h1>
-          </div>
+    <div className="min-h-screen" style={{ backgroundColor: storeData.primary_color + '10' }}>
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-6xl mx-auto">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline" className="relative">
-                <ShoppingCart className="h-5 w-5" />
-                {cart.length > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0">
-                    {cart.length}
-                  </Badge>
-                )}
-              </Button>
+              <div className="hidden">Trigger</div>
             </SheetTrigger>
+            <StoreHeader 
+              storeData={storeData}
+              cartItemsCount={cart.length}
+              onCartClick={() => document.querySelector<HTMLButtonElement>('[role="dialog"]')?.click()}
+            />
             <SheetContent>
               <SheetHeader>
-                <SheetTitle>Your Cart</SheetTitle>
+                <SheetTitle style={{ color: storeData.secondary_color }}>Your Cart</SheetTitle>
               </SheetHeader>
               <div className="mt-8 space-y-4">
                 {cart.length === 0 ? (
@@ -231,8 +222,8 @@ export default function Store() {
                       <CartItem
                         key={item.id}
                         item={item}
+                        storeData={storeData}
                         updateQuantity={updateQuantity}
-                        currency={storeData.currency}
                       />
                     ))}
                     <div className="border-t pt-4">
@@ -264,6 +255,10 @@ export default function Store() {
                         className="w-full"
                         onClick={handleCheckout}
                         disabled={isCheckingOut}
+                        style={{
+                          backgroundColor: storeData.secondary_color,
+                          color: storeData.primary_color
+                        }}
                       >
                         {isCheckingOut ? "Processing..." : "Checkout"}
                       </Button>
@@ -273,22 +268,23 @@ export default function Store() {
               </div>
             </SheetContent>
           </Sheet>
-        </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {storeData.menu_items && storeData.menu_items.length > 0 ? (
-            storeData.menu_items.map((item: MenuItemType) => (
-              <MenuItem
-                key={item.id}
-                item={item}
-                onAddToCart={addToCart}
-              />
-            ))
-          ) : (
-            <p className="text-muted-foreground col-span-full text-center py-8">
-              No menu items available
-            </p>
-          )}
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {storeData.menu_items && storeData.menu_items.length > 0 ? (
+              storeData.menu_items.map((item: MenuItemType) => (
+                <MenuItem
+                  key={item.id}
+                  item={item}
+                  storeData={storeData}
+                  onAddToCart={addToCart}
+                />
+              ))
+            ) : (
+              <p className="text-muted-foreground col-span-full text-center py-8">
+                No menu items available
+              </p>
+            )}
+          </div>
         </div>
       </div>
     </div>
