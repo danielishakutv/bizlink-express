@@ -20,6 +20,17 @@ export interface StoreCustomization {
   public_name?: string;
   menu_items: MenuItemType[];
   currency: string;
+  text_color?: string;
+  header_color?: string;
+  background_color?: string;
+  body_background_color?: string;
+  item_title_color?: string;
+  description_color?: string;
+  button_color?: string;
+  button_text_color?: string;
+  business_description?: string;
+  business_address?: string;
+  contact_number?: string;
   profiles?: {
     business_name?: string;
   };

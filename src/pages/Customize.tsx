@@ -2,27 +2,14 @@ import { useEffect, useState } from "react";
 import { useSession } from "@supabase/auth-helpers-react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import TeamManagement from "@/pages/TeamManagement";
-
-const currencies = [
-  { value: "USD", label: "US Dollar (USD)" },
-  { value: "NGN", label: "Nigerian Naira (NGN)" },
-  { value: "NAD", label: "Namibian Dollar (NAD)" },
-  { value: "KES", label: "Kenyan Shilling (KES)" },
-  { value: "GHS", label: "Ghanaian Cedi (GHS)" },
-];
+import ColorPicker from "@/components/customize/ColorPicker";
+import BusinessInfoForm from "@/components/customize/BusinessInfoForm";
+import LogoUploader from "@/components/customize/LogoUploader";
+import CurrencySelector from "@/components/customize/CurrencySelector";
 
 export default function Customize() {
   const session = useSession();
@@ -31,10 +18,25 @@ export default function Customize() {
   const isMobile = useIsMobile();
   const [loading, setLoading] = useState(true);
   const [logo, setLogo] = useState<File | null>(null);
+  
+  // Business Info
+  const [publicName, setPublicName] = useState("");
+  const [description, setDescription] = useState("");
+  const [address, setAddress] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
+  const [currency, setCurrency] = useState("USD");
+
+  // Colors
   const [primaryColor, setPrimaryColor] = useState("#9b87f5");
   const [secondaryColor, setSecondaryColor] = useState("#7E69AB");
-  const [currency, setCurrency] = useState("USD");
-  const [publicName, setPublicName] = useState("");
+  const [textColor, setTextColor] = useState("#000000");
+  const [headerColor, setHeaderColor] = useState("#000000");
+  const [backgroundColor, setBackgroundColor] = useState("#ffffff");
+  const [bodyBackgroundColor, setBodyBackgroundColor] = useState("#f5f5f5");
+  const [itemTitleColor, setItemTitleColor] = useState("#000000");
+  const [descriptionColor, setDescriptionColor] = useState("#666666");
+  const [buttonColor, setButtonColor] = useState("#000000");
+  const [buttonTextColor, setButtonTextColor] = useState("#ffffff");
 
   useEffect(() => {
     if (!session) {
@@ -57,6 +59,17 @@ export default function Customize() {
           setSecondaryColor(data.secondary_color || "#7E69AB");
           setCurrency(data.currency || "USD");
           setPublicName(data.public_name || "");
+          setDescription(data.business_description || "");
+          setAddress(data.business_address || "");
+          setContactNumber(data.contact_number || "");
+          setTextColor(data.text_color || "#000000");
+          setHeaderColor(data.header_color || "#000000");
+          setBackgroundColor(data.background_color || "#ffffff");
+          setBodyBackgroundColor(data.body_background_color || "#f5f5f5");
+          setItemTitleColor(data.item_title_color || "#000000");
+          setDescriptionColor(data.description_color || "#666666");
+          setButtonColor(data.button_color || "#000000");
+          setButtonTextColor(data.button_text_color || "#ffffff");
         }
       } catch (error: any) {
         console.error('Error fetching customization:', error);
@@ -87,7 +100,6 @@ export default function Customize() {
       let logoUrl = null;
       if (logo) {
         const fileExt = logo.name.split('.').pop();
-        // Create user-specific folder path
         const filePath = `${session.user.id}/${crypto.randomUUID()}.${fileExt}`;
         
         const { error: uploadError, data } = await supabase.storage
@@ -112,6 +124,17 @@ export default function Customize() {
           secondary_color: secondaryColor,
           currency,
           public_name: publicName,
+          business_description: description,
+          business_address: address,
+          contact_number: contactNumber,
+          text_color: textColor,
+          header_color: headerColor,
+          background_color: backgroundColor,
+          body_background_color: bodyBackgroundColor,
+          item_title_color: itemTitleColor,
+          description_color: descriptionColor,
+          button_color: buttonColor,
+          button_text_color: buttonTextColor,
         }, {
           onConflict: 'business_id'
         });
@@ -150,81 +173,95 @@ export default function Customize() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="publicName">Business Name (Public)</Label>
-              <Input
-                id="publicName"
-                value={publicName}
-                onChange={(e) => setPublicName(e.target.value)}
-                placeholder="Enter your business name"
+        <form onSubmit={handleSubmit} className="space-y-8">
+          <div className="space-y-6">
+            <BusinessInfoForm
+              publicName={publicName}
+              setPublicName={setPublicName}
+              description={description}
+              setDescription={setDescription}
+              address={address}
+              setAddress={setAddress}
+              contactNumber={contactNumber}
+              setContactNumber={setContactNumber}
+            />
+
+            <LogoUploader handleLogoChange={handleLogoChange} />
+
+            <CurrencySelector currency={currency} setCurrency={setCurrency} />
+
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold">Color Customization</h2>
+              
+              <ColorPicker
+                label="Primary Color"
+                value={primaryColor}
+                onChange={setPrimaryColor}
+                id="primaryColor"
               />
-            </div>
 
-            <div>
-              <Label htmlFor="logo">Business Logo</Label>
-              <Input
-                id="logo"
-                type="file"
-                accept="image/*"
-                onChange={handleLogoChange}
-                className="cursor-pointer"
+              <ColorPicker
+                label="Secondary Color"
+                value={secondaryColor}
+                onChange={setSecondaryColor}
+                id="secondaryColor"
               />
-            </div>
 
-            <div>
-              <Label htmlFor="currency">Currency</Label>
-              <Select value={currency} onValueChange={setCurrency}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select currency" />
-                </SelectTrigger>
-                <SelectContent>
-                  {currencies.map((curr) => (
-                    <SelectItem key={curr.value} value={curr.value}>
-                      {curr.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
+              <ColorPicker
+                label="Text Color"
+                value={textColor}
+                onChange={setTextColor}
+                id="textColor"
+              />
 
-            <div>
-              <Label htmlFor="primaryColor">Primary Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="primaryColor"
-                  type="color"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="w-20 h-10 p-1 cursor-pointer"
-                />
-                <Input
-                  type="text"
-                  value={primaryColor}
-                  onChange={(e) => setPrimaryColor(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
+              <ColorPicker
+                label="Header Color"
+                value={headerColor}
+                onChange={setHeaderColor}
+                id="headerColor"
+              />
 
-            <div>
-              <Label htmlFor="secondaryColor">Secondary Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="secondaryColor"
-                  type="color"
-                  value={secondaryColor}
-                  onChange={(e) => setSecondaryColor(e.target.value)}
-                  className="w-20 h-10 p-1 cursor-pointer"
-                />
-                <Input
-                  type="text"
-                  value={secondaryColor}
-                  onChange={(e) => setSecondaryColor(e.target.value)}
-                  className="flex-1"
-                />
-              </div>
+              <ColorPicker
+                label="Background Color"
+                value={backgroundColor}
+                onChange={setBackgroundColor}
+                id="backgroundColor"
+              />
+
+              <ColorPicker
+                label="Body Background Color"
+                value={bodyBackgroundColor}
+                onChange={setBodyBackgroundColor}
+                id="bodyBackgroundColor"
+              />
+
+              <ColorPicker
+                label="Item Title Color"
+                value={itemTitleColor}
+                onChange={setItemTitleColor}
+                id="itemTitleColor"
+              />
+
+              <ColorPicker
+                label="Description Color"
+                value={descriptionColor}
+                onChange={setDescriptionColor}
+                id="descriptionColor"
+              />
+
+              <ColorPicker
+                label="Button Color"
+                value={buttonColor}
+                onChange={setButtonColor}
+                id="buttonColor"
+              />
+
+              <ColorPicker
+                label="Button Text Color"
+                value={buttonTextColor}
+                onChange={setButtonTextColor}
+                id="buttonTextColor"
+              />
             </div>
           </div>
 
@@ -243,4 +280,3 @@ export default function Customize() {
     </div>
   );
 }
-

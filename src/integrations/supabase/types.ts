@@ -11,39 +11,72 @@ export type Database = {
     Tables: {
       business_customizations: {
         Row: {
+          background_color: string | null
+          body_background_color: string | null
+          business_address: string | null
+          business_description: string | null
           business_id: string | null
+          button_color: string | null
+          button_text_color: string | null
+          contact_number: string | null
           created_at: string
           currency: string | null
+          description_color: string | null
+          header_color: string | null
           id: string
+          item_title_color: string | null
           logo_url: string | null
           menu_items: Json | null
           primary_color: string | null
           public_name: string | null
           secondary_color: string | null
+          text_color: string | null
           updated_at: string
         }
         Insert: {
+          background_color?: string | null
+          body_background_color?: string | null
+          business_address?: string | null
+          business_description?: string | null
           business_id?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
+          contact_number?: string | null
           created_at?: string
           currency?: string | null
+          description_color?: string | null
+          header_color?: string | null
           id?: string
+          item_title_color?: string | null
           logo_url?: string | null
           menu_items?: Json | null
           primary_color?: string | null
           public_name?: string | null
           secondary_color?: string | null
+          text_color?: string | null
           updated_at?: string
         }
         Update: {
+          background_color?: string | null
+          body_background_color?: string | null
+          business_address?: string | null
+          business_description?: string | null
           business_id?: string | null
+          button_color?: string | null
+          button_text_color?: string | null
+          contact_number?: string | null
           created_at?: string
           currency?: string | null
+          description_color?: string | null
+          header_color?: string | null
           id?: string
+          item_title_color?: string | null
           logo_url?: string | null
           menu_items?: Json | null
           primary_color?: string | null
           public_name?: string | null
           secondary_color?: string | null
+          text_color?: string | null
           updated_at?: string
         }
         Relationships: [
