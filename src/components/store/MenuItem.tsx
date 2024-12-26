@@ -25,7 +25,7 @@ export const MenuItem = ({ item, onAddToCart }: MenuItemProps) => {
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between">
-          <p className="text-lg font-semibold">${item.price}</p>
+          <p className="text-lg font-semibold">₦{item.price}</p>
           <Button size="sm" onClick={() => onAddToCart(item)}>
             <Plus className="h-4 w-4 mr-2" />
             Add to Cart

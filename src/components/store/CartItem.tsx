@@ -14,7 +14,7 @@ export const CartItem = ({ item, updateQuantity, currency }: CartItemProps) => {
       <div>
         <h3 className="font-medium">{item.name}</h3>
         <p className="text-sm text-muted-foreground">
-          {currency} {item.price.toFixed(2)}
+          ₦ {item.price.toFixed(2)}
         </p>
       </div>
       <div className="flex items-center gap-2">

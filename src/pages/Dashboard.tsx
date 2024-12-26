@@ -19,7 +19,6 @@ export default function Dashboard() {
   const isMobile = useIsMobile();
   const supabaseClient = useSupabaseClient();
 
-  // Add the missing handleSignOut function
   const handleSignOut = async () => {
     const { error } = await supabaseClient.auth.signOut();
     if (error) {
@@ -37,7 +36,6 @@ export default function Dashboard() {
     }
   };
 
-  // Sample data for the chart - in a real app, this would come from your database
   const sampleData = [
     { name: 'Jan', value: 400, revenue: 5000 },
     { name: 'Feb', value: 300, revenue: 4200 },
@@ -126,7 +124,7 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$24,500</div>
+            <div className="text-2xl font-bold">₦24,500</div>
             <p className="text-xs text-muted-foreground">+15% from last month</p>
           </CardContent>
         </Card>
