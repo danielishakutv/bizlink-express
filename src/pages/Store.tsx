@@ -2,12 +2,9 @@ import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
+import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 import { MenuItem } from "@/components/store/MenuItem";
-import { CartItem } from "@/components/store/CartItem";
+import { Cart } from "@/components/store/Cart";
 import { StoreHeader } from "@/components/store/StoreHeader";
 import { MenuItemType, CartItemType, StoreCustomization } from "@/types/store";
 
@@ -17,9 +14,7 @@ export default function Store() {
   const [loading, setLoading] = useState(true);
   const [storeData, setStoreData] = useState<StoreCustomization | null>(null);
   const [cart, setCart] = useState<CartItemType[]>([]);
-  const [customerName, setCustomerName] = useState("");
-  const [customerPhone, setCustomerPhone] = useState("");
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isCartOpen, setIsCartOpen] = useState(false);
 
   useEffect(() => {
     const fetchStoreData = async () => {
@@ -111,70 +106,9 @@ export default function Store() {
     });
   };
 
-  const getTotalAmount = () => {
-    return cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
-
-  const handleCheckout = async () => {
-    if (!customerName.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter your name",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!customerPhone.trim()) {
-      toast({
-        title: "Error",
-        description: "Please enter your phone number",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsCheckingOut(true);
-    try {
-      const orderData = {
-        business_id: storeData?.business_id,
-        customer_name: customerName,
-        customer_phone: customerPhone,
-        items: cart.map(item => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          quantity: item.quantity
-        })),
-        total_amount: getTotalAmount(),
-        currency: storeData?.currency || 'USD',
-        status: 'pending'
-      };
-
-      const { error } = await supabase
-        .from('orders')
-        .insert(orderData);
-
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Your order has been placed successfully!",
-      });
-
-      setCart([]);
-      setCustomerName("");
-      setCustomerPhone("");
-    } catch (error: any) {
-      console.error('Error placing order:', error);
-      toast({
-        title: "Error",
-        description: "Failed to place order. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCheckingOut(false);
-    }
+  const handleCheckoutComplete = () => {
+    setCart([]);
+    setIsCartOpen(false);
   };
 
   if (loading) {
@@ -203,73 +137,19 @@ export default function Store() {
     >
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
-          <Sheet>
-            <SheetTrigger asChild>
-              <div className="hidden">Trigger</div>
-            </SheetTrigger>
+          <Sheet open={isCartOpen} onOpenChange={setIsCartOpen}>
+            <SheetTrigger className="hidden" />
             <StoreHeader 
               storeData={storeData}
               cartItemsCount={cart.length}
-              onCartClick={() => document.querySelector<HTMLButtonElement>('[role="dialog"]')?.click()}
+              onCartClick={() => setIsCartOpen(true)}
             />
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle style={{ color: storeData.secondary_color }}>Your Cart</SheetTitle>
-              </SheetHeader>
-              <div className="mt-8 space-y-4">
-                {cart.length === 0 ? (
-                  <p className="text-muted-foreground">Your cart is empty</p>
-                ) : (
-                  <>
-                    {cart.map((item) => (
-                      <CartItem
-                        key={item.id}
-                        item={item}
-                        storeData={storeData}
-                        updateQuantity={updateQuantity}
-                      />
-                    ))}
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between font-medium">
-                        <span>Total:</span>
-                        <span>{storeData.currency} {getTotalAmount().toFixed(2)}</span>
-                      </div>
-                    </div>
-                    <div className="space-y-4 mt-6">
-                      <div>
-                        <Label htmlFor="name">Name</Label>
-                        <Input
-                          id="name"
-                          value={customerName}
-                          onChange={(e) => setCustomerName(e.target.value)}
-                          placeholder="Enter your name"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="phone">Phone Number</Label>
-                        <Input
-                          id="phone"
-                          value={customerPhone}
-                          onChange={(e) => setCustomerPhone(e.target.value)}
-                          placeholder="Enter your phone number"
-                        />
-                      </div>
-                      <Button
-                        className="w-full"
-                        onClick={handleCheckout}
-                        disabled={isCheckingOut}
-                        style={{
-                          backgroundColor: storeData.secondary_color,
-                          color: storeData.primary_color
-                        }}
-                      >
-                        {isCheckingOut ? "Processing..." : "Checkout"}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </SheetContent>
+            <Cart 
+              cart={cart}
+              storeData={storeData}
+              updateQuantity={updateQuantity}
+              onCheckoutComplete={handleCheckoutComplete}
+            />
           </Sheet>
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
