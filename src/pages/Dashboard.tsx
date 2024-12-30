@@ -10,12 +10,25 @@ import { Settings, DollarSign, Menu, ShoppingCart, Users, LogOut } from "lucide-
 import { useIsMobile } from "@/hooks/use-mobile";
 import { StoreLinks } from "@/components/store/StoreLinks";
 
+interface DashboardStats {
+  totalRevenue: number;
+  totalOrders: number;
+  uniqueCustomers: number;
+  menuItemsCount: number;
+}
+
 export default function Dashboard() {
   const session = useSession();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [businessProfile, setBusinessProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<DashboardStats>({
+    totalRevenue: 0,
+    totalOrders: 0,
+    uniqueCustomers: 0,
+    menuItemsCount: 0
+  });
   const isMobile = useIsMobile();
   const supabaseClient = useSupabaseClient();
 
@@ -36,13 +49,48 @@ export default function Dashboard() {
     }
   };
 
-  const sampleData = [
-    { name: 'Jan', value: 400, revenue: 5000 },
-    { name: 'Feb', value: 300, revenue: 4200 },
-    { name: 'Mar', value: 600, revenue: 6800 },
-    { name: 'Apr', value: 800, revenue: 8500 },
-    { name: 'May', value: 500, revenue: 5600 },
-  ];
+  const fetchDashboardStats = async () => {
+    if (!session) return;
+
+    try {
+      // Fetch orders data
+      const { data: ordersData, error: ordersError } = await supabase
+        .from('orders')
+        .select('total_amount, customer_name')
+        .eq('business_id', session.user.id);
+
+      if (ordersError) throw ordersError;
+
+      // Fetch menu items count
+      const { data: customization, error: customizationError } = await supabase
+        .from('business_customizations')
+        .select('menu_items')
+        .eq('business_id', session.user.id)
+        .single();
+
+      if (customizationError) throw customizationError;
+
+      // Calculate stats
+      const totalRevenue = ordersData?.reduce((sum, order) => sum + Number(order.total_amount), 0) || 0;
+      const totalOrders = ordersData?.length || 0;
+      const uniqueCustomers = new Set(ordersData?.map(order => order.customer_name)).size;
+      const menuItemsCount = (customization?.menu_items as any[] || []).length;
+
+      setStats({
+        totalRevenue,
+        totalOrders,
+        uniqueCustomers,
+        menuItemsCount
+      });
+    } catch (error: any) {
+      console.error('Error fetching dashboard stats:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load dashboard statistics",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     if (!session) {
@@ -73,7 +121,16 @@ export default function Dashboard() {
     };
 
     fetchBusinessProfile();
+    fetchDashboardStats();
   }, [session, navigate, toast]);
+
+  const sampleData = [
+    { name: 'Jan', value: 400, revenue: 5000 },
+    { name: 'Feb', value: 300, revenue: 4200 },
+    { name: 'Mar', value: 600, revenue: 6800 },
+    { name: 'Apr', value: 800, revenue: 8500 },
+    { name: 'May', value: 500, revenue: 5600 },
+  ];
 
   if (loading) {
     return (
@@ -124,19 +181,19 @@ export default function Dashboard() {
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">₦24,500</div>
-            <p className="text-xs text-muted-foreground">+15% from last month</p>
+            <div className="text-2xl font-bold">${stats.totalRevenue.toFixed(2)}</div>
+            <p className="text-xs text-muted-foreground">From {stats.totalOrders} orders</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Visitors</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Customers</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,234</div>
-            <p className="text-xs text-muted-foreground">+12% from last month</p>
+            <div className="text-2xl font-bold">{stats.uniqueCustomers}</div>
+            <p className="text-xs text-muted-foreground">Unique customers served</p>
           </CardContent>
         </Card>
 
@@ -146,19 +203,19 @@ export default function Dashboard() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">567</div>
-            <p className="text-xs text-muted-foreground">+8% from last month</p>
+            <div className="text-2xl font-bold">{stats.totalOrders}</div>
+            <p className="text-xs text-muted-foreground">Orders processed</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Engagement Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">Menu Items</CardTitle>
             <Menu className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">4.6%</div>
-            <p className="text-xs text-muted-foreground">+2% from last month</p>
+            <div className="text-2xl font-bold">{stats.menuItemsCount}</div>
+            <p className="text-xs text-muted-foreground">Active menu items</p>
           </CardContent>
         </Card>
       </div>
